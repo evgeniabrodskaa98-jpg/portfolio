@@ -74,89 +74,15 @@
 
   /* ------------------------------------------------------------------
      4. Portfolio gallery
-     - Lazy-loads video sources as cards approach the viewport
-     - Click / tap a card to play or pause its video
-     - Only one video plays at a time
+     - Each card holds a Cloudinary embed player (iframe) with its own
+       built-in play/pause controls, loaded natively via loading="lazy"
      - Mouse drag support on desktop, native touch swipe on mobile
      - Updates the "01 / 08" counter as the user scrolls
      ------------------------------------------------------------------ */
   const gallery = document.getElementById('gallery');
   const galleryTrack = document.getElementById('galleryTrack');
   const galleryCards = Array.from(document.querySelectorAll('.gallery__card'));
-  const galleryVideos = Array.from(document.querySelectorAll('.gallery__video'));
   const galleryCurrentEl = document.getElementById('galleryCurrent');
-
-  let currentlyPlaying = null; // holds the currently playing <video> element
-
-  /* --- 4a. Lazy loading: swap data-src -> src only when a card is near view --- */
-  if ('IntersectionObserver' in window) {
-    const lazyObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const video = entry.target.querySelector('.gallery__video');
-          const source = video.querySelector('source[data-src]');
-          if (source) {
-            source.src = source.dataset.src;
-            video.load();
-            source.removeAttribute('data-src');
-          }
-          lazyObserver.unobserve(entry.target);
-        }
-      });
-    }, {
-      root: gallery,
-      rootMargin: '400px', // start loading a little before it's visible
-      threshold: 0.01
-    });
-
-    galleryCards.forEach((card) => lazyObserver.observe(card));
-  } else {
-    // Fallback: load everything immediately
-    document.querySelectorAll('.gallery__video source[data-src]').forEach((source) => {
-      source.src = source.dataset.src;
-      source.removeAttribute('data-src');
-    });
-  }
-
-  /* --- 4b. Play / pause behaviour — only one video plays at a time --- */
-  function pauseVideo(video) {
-    if (!video) return;
-    video.pause();
-    const card = video.closest('.gallery__card');
-    if (card) card.classList.remove('is-playing');
-  }
-
-  function playVideo(video) {
-    if (currentlyPlaying && currentlyPlaying !== video) {
-      pauseVideo(currentlyPlaying);
-    }
-    video.play().catch(() => {
-      /* Autoplay restrictions or missing source — fail silently */
-    });
-    const card = video.closest('.gallery__card');
-    if (card) card.classList.add('is-playing');
-    currentlyPlaying = video;
-  }
-
-  galleryCards.forEach((card) => {
-    const video = card.querySelector('.gallery__video');
-    const playButton = card.querySelector('.gallery__play');
-
-    playButton.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (video.paused) {
-        playVideo(video);
-      } else {
-        pauseVideo(video);
-        currentlyPlaying = null;
-      }
-    });
-
-    // Reset the UI state if a video finishes loading data but stalls, or ends unexpectedly
-    video.addEventListener('pause', () => {
-      card.classList.remove('is-playing');
-    });
-  });
 
   /* --- 4c. Desktop mouse-drag scrolling --- */
   let isDragging = false;
@@ -236,18 +162,6 @@
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault();
       gallery.scrollBy({ left: -cardWidth, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
-    }
-  });
-
-  /* ------------------------------------------------------------------
-     6. Pause the hero video off-screen tabs to save resources (optional
-     performance courtesy — most browsers do this automatically, but we
-     make sure the gallery videos stop too when the tab is hidden).
-     ------------------------------------------------------------------ */
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden && currentlyPlaying) {
-      pauseVideo(currentlyPlaying);
-      currentlyPlaying = null;
     }
   });
 
