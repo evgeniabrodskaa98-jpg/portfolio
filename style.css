@@ -164,6 +164,18 @@ button:focus-visible,
   }
 }
 
+.hero__avatar {
+  width: clamp(72px, 9vw, 112px);
+  height: clamp(72px, 9vw, 112px);
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(244, 244, 244, 0.45);
+  padding: 4px;
+  background-clip: content-box, padding-box;
+  box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.6);
+  margin-bottom: clamp(20px, 3.5vw, 32px);
+}
+
 .hero__eyebrow {
   font-size: 12px;
   font-weight: 500;
